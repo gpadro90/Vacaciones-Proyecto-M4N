@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vacaciones — Proyecto M4N</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f3; color: #1a1a1a; min-height: 100vh; }
+  header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 17px; font-weight: 600; color: #1a1a1a; }
+  .container { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+  .tab { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 18px; font-size: 14px; color: #666; cursor: pointer; transition: all 0.15s; }
+  .tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; font-weight: 500; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 20px; margin-bottom: 12px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; color: #666; font-weight: 500; }
+  .field input, .field select { border: 1px solid #ddd; border-radius: 8px; padding: 9px 12px; font-size: 14px; color: #1a1a1a; background: #fff; outline: none; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus { border-color: #1a1a1a; }
+  .btn { border: 1px solid #ddd; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #fff; color: #1a1a1a; transition: all 0.15s; }
+  .btn.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; font-weight: 500; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+  .msg { font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; }
+  .msg.ok { background: #eaf3de; color: #3b6d11; }
+  .msg.err { background: #fcebeb; color: #a32d2d; }
+  .msg.info { background: #e8f0fe; color: #1a56db; }
+  .entry-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .entry-dates { font-size: 13px; color: #666; margin-top: 3px; }
+  .entry-note { font-size: 12px; color: #999; margin-top: 2px; }
+  .badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .badge.consensuado { background: #eaf3de; color: #3b6d11; }
+  .badge.pendiente { background: #faeeda; color: #854f0b; }
+  .del-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 16px; padding: 6px; border-radius: 6px; transition: color 0.15s; }
+  .del-btn:hover { color: #e24b4a; }
+  .empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; }
+  .loading { text-align: center; padding: 30px; color: #aaa; font-size: 14px; }
+  .filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-row label { font-size: 13px; color: #888; }
+  .filter-row select { font-size: 13px; padding: 6px 10px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a1a; outline: none; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-nav { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 14px; }
+  .cal-title { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day-label { text-align: center; font-size: 12px; color: #999; padding: 4px 0; font-weight: 500; }
+  .cal-cell { min-height: 56px; border-radius: 8px; background: #f9f9f9; padding: 5px 7px; border: 1px solid #f0f0f0; }
+  .cal-cell.empty { background: transparent; border-color: transparent; }
+  .cal-cell.today { outline: 2px solid #1a1a1a; outline-offset: -1px; }
+  .cal-num { font-size: 12px; color: #999; font-weight: 600; }
+  .cal-dot { font-size: 10px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .refresh-btn { margin-left: auto; background: none; border: 1px solid #ddd; border-radius: 8px; padding: 5px 12px; font-size: 13px; cursor: pointer; color: #666; }
+  @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } .tabs { flex-wrap: wrap; } }
+</style>
+</head>
+<body>
+
+<header>
+  <i class="ti ti-calendar-event" style="font-size:22px"></i>
+  <h1>Vacaciones — Proyecto M4N</h1>
+  <span style="margin-left:auto;font-size:13px;color:#aaa">Equipo IFLOW</span>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('form')"><i class="ti ti-plus"></i> Cargar</button>
+    <button class="tab" onclick="switchTab('list')"><i class="ti ti-list"></i> Ver todas</button>
+    <button class="tab" onclick="switchTab('cal')"><i class="ti ti-calendar"></i> Calendario</button>
+  </div>
+
+  <!-- FORM -->
+  <div id="sec-form" class="section active">
+    <div class="card">
+      <div id="msg" style="display:none" class="msg"></div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="f-name" placeholder="Tu nombre completo" />
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="f-status">
+            <option value="pendiente">Sin consensuar</option>
+            <option value="consensuado">Consensuado con el equipo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Desde</label>
+          <input type="date" id="f-from" />
+        </div>
+        <div class="field">
+          <label>Hasta</label>
+          <input type="date" id="f-to" />
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:16px">
+        <label>Nota (opcional)</label>
+        <input type="text" id="f-note" placeholder="Ej: viaje al exterior, familia..." />
+      </div>
+      <button class="btn primary" id="save-btn" onclick="saveEntry()"><i class="ti ti-device-floppy"></i> Guardar</button>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div id="sec-list" class="section">
+    <div class="filter-row">
+      <label>Filtrar:</label>
+      <select id="fp" onchange="renderList()"><option value="">Todos</option></select>
+      <select id="fs" onchange="renderList()">
+        <option value="">Todos los estados</option>
+        <option value="consensuado">Consensuados</option>
+        <option value="pendiente">Sin consensuar</option>
+      </select>
+      <button class="refresh-btn" onclick="loadData()"><i class="ti ti-refresh"></i> Actualizar</button>
+    </div>
+    <div id="list-body"><div class="loading"><i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px"></i>Cargando...</div></div>
+  </div>
+
+  <!-- CAL -->
+  <div id="sec-cal" class="section">
+    <div class="card">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+        <span class="cal-title" id="cal-title"></span>
+        <button class="cal-nav" onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button>
+      </div>
+      <div class="cal-grid" id="cal-labels"></div>
+      <div class="cal-grid" style="margin-top:4px" id="cal-cells"></div>
+      <div class="legend" id="cal-legend"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbyyF8uGBisoa_fRmoAx7oZJIjFAfRlLgEiV7nxALAT9Ybs7hORjut87alTQSIX7DcShbg/exec';
+const COLORS = [
+  ['#B5D4F4','#185FA5'],['#9FE1CB','#0F6E56'],['#F4C0D1','#993556'],
+  ['#FAC775','#854F0B'],['#CEC2F6','#3C3489'],['#F5C4B3','#993C1D'],
+  ['#C0DD97','#3B6D11'],['#F09595','#A32D2D']
+];
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let cy, cm, allEntries = [];
+
+function colorFor(n) { let h=0; for(let c of n) h=(h*31+c.charCodeAt(0))%COLORS.length; return COLORS[h]; }
+function ini(n) { return n.trim().split(/\s+/).map(w=>w[0].toUpperCase()).slice(0,2).join(''); }
+function fmt(d) { if(!d) return ''; const [y,m,dd]=String(d).split('-'); return `${dd}/${m}/${y}`; }
+function dcount(a,b) { return Math.round((new Date(b)-new Date(a))/86400000)+1; }
+
+async function loadData() {
+  try {
+    const res = await fetch(API);
+    allEntries = await res.json();
+    // filter out header row if present
+    allEntries = allEntries.filter(e => e.id && e.id !== 'id');
+  } catch(e) {
+    allEntries = [];
+  }
+  renderList();
+  if(document.getElementById('sec-cal').classList.contains('active')) renderCal();
+}
+
+function switchTab(t) {
+  ['form','list','cal'].forEach((x,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',x===t);
+    document.getElementById('sec-'+x).classList.toggle('active',x===t);
+  });
+  if(t==='list') loadData();
+  if(t==='cal') { loadData(); renderCal(); }
+}
+
+function showMsg(m,t) {
+  const el=document.getElementById('msg');
+  el.textContent=m; el.className='msg '+t; el.style.display='block';
+  if(t!=='info') setTimeout(()=>el.style.display='none',3500);
+}
+
+async function saveEntry() {
+  const name=document.getElementById('f-name').value.trim();
+  const from=document.getElementById('f-from').value;
+  const to=document.getElementById('f-to').value;
+  const status=document.getElementById('f-status').value;
+  const note=document.getElementById('f-note').value.trim();
+  if(!name) return showMsg('Ingresá tu nombre.','err');
+  if(!from||!to) return showMsg('Completá las fechas.','err');
+  if(from>to) return showMsg('La fecha de inicio debe ser antes del fin.','err');
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  showMsg('Guardando...','info');
+
+  try {
+    await fetch(API, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: Date.now(), nombre: name, desde: from, hasta: to, estado: status, nota: note })
+    });
+    showMsg('¡Guardado correctamente!','ok');
+    ['f-name','f-from','f-to','f-note'].forEach(id=>document.getElementById(id).value='');
+  } catch(e) {
+    showMsg('Error al guardar. Revisá tu conexión.','err');
+  }
+  btn.disabled = false;
+}
+
+function renderList() {
+  const pf=document.getElementById('fp').value;
+  const sf=document.getElementById('fs').value;
+  const sel=document.getElementById('fp');
+  const names=[...new Set(allEntries.map(e=>e.nombre))].sort();
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todos</option>'+names.map(n=>`<option value="${n}"${n===cur?' selected':''}>${n}</option>`).join('');
+  const filtered=allEntries.filter(e=>(!pf||e.nombre===pf)&&(!sf||e.estado===sf))
+    .sort((a,b)=>String(a.desde).localeCompare(String(b.desde)));
+  const body=document.getElementById('list-body');
+  if(!filtered.length){body.innerHTML='<div class="empty"><i class="ti ti-calendar-off" style="font-size:28px;display:block;margin-bottom:8px"></i>No hay vacaciones cargadas.</div>';return;}
+  body.innerHTML=filtered.map(e=>{
+    const [bg,txt]=colorFor(e.nombre||'');
+    const d=dcount(e.desde,e.hasta);
+    return `<div class="entry-card">
+      <div class="avatar" style="background:${bg};color:${txt}">${ini(e.nombre||'?')}</div>
+      <div class="entry-info">
+        <div class="entry-name">${e.nombre}</div>
+        <div class="entry-dates"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-1px"></i> ${fmt(e.desde)} → ${fmt(e.hasta)} · <strong>${d}</strong> día${d!==1?'s':''}</div>
+        ${e.nota?`<div class="entry-note"><i class="ti ti-note" style="font-size:12px;vertical-align:-1px"></i> ${e.nota}</div>`:''}
+      </div>
+      <span class="badge ${e.estado}">${e.estado==='consensuado'?'Consensuado':'Sin consensuar'}</span>
+      <button class="del-btn" onclick="delEntry('${e.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+async function delEntry(id) {
+  if(!confirm('¿Eliminar esta entrada?')) return;
+  try {
+    await fetch(API, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id: String(id) })
+    });
+    await loadData();
+  } catch(e) { alert('Error al eliminar.'); }
+}
+
+function changeMonth(d) { cm+=d; if(cm>11){cm=0;cy++;} if(cm<0){cm=11;cy--;} renderCal(); }
+
+function renderCal() {
+  document.getElementById('cal-title').textContent=`${MONTHS[cm]} ${cy}`;
+  document.getElementById('cal-labels').innerHTML=DAYS.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
+  const first=new Date(cy,cm,1).getDay();
+  const dim=new Date(cy,cm+1,0).getDate();
+  const now=new Date(); const ty=now.getFullYear(),tm=now.getMonth(),td=now.getDate();
+  const names=[...new Set(allEntries.map(e=>e.nombre))].sort();
+  let cells='';
+  for(let i=0;i<first;i++) cells+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=`${cy}-${String(cm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isT=cy===ty&&cm===tm&&d===td;
+    const who=allEntries.filter(e=>String(e.desde)<=ds&&String(e.hasta)>=ds);
+    const dots=who.map(e=>{const[,txt]=colorFor(e.nombre||'');return`<div class="cal-dot" style="color:${txt}">● ${(e.nombre||'').split(' ')[0]}</div>`;}).join('');
+    cells+=`<div class="cal-cell${isT?' today':''}"><div class="cal-num">${d}</div>${dots}</div>`;
+  }
+  document.getElementById('cal-cells').innerHTML=cells;
+  document.getElementById('cal-legend').innerHTML=names.map(n=>{const[,txt]=colorFor(n);return`<div class="legend-item"><div class="legend-dot" style="background:${txt}"></div>${n}</div>`;}).join('');
+}
+
+const now=new Date(); cy=now.getFullYear(); cm=now.getMonth();
+</script>
+</body>
+</html>
