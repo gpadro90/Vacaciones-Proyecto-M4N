@@ -142,7 +142,7 @@
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbyyF8uGBisoa_fRmoAx7oZJIjFAfRlLgEiV7nxALAT9Ybs7hORjut87alTQSIX7DcShbg/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyjydPyqZauJqxzck15uOSGgvHHuLXIciwr3dCnn3QSRrQg-I0fApnRbBB8lvagBOVEqQ/exec';
 const COLORS = [
   ['#B5D4F4','#185FA5'],['#9FE1CB','#0F6E56'],['#F4C0D1','#993556'],
   ['#FAC775','#854F0B'],['#CEC2F6','#3C3489'],['#F5C4B3','#993C1D'],
@@ -157,17 +157,27 @@ function ini(n) { return n.trim().split(/\s+/).map(w=>w[0].toUpperCase()).slice(
 function fmt(d) { if(!d) return ''; const [y,m,dd]=String(d).split('-'); return `${dd}/${m}/${y}`; }
 function dcount(a,b) { return Math.round((new Date(b)-new Date(a))/86400000)+1; }
 
-async function loadData() {
-  try {
-    const res = await fetch(API);
-    allEntries = await res.json();
-    // filter out header row if present
-    allEntries = allEntries.filter(e => e.id && e.id !== 'id');
-  } catch(e) {
-    allEntries = [];
-  }
-  renderList();
-  if(document.getElementById('sec-cal').classList.contains('active')) renderCal();
+function loadData() {
+  return new Promise((resolve) => {
+    const cbName = 'cb_' + Date.now();
+    const script = document.createElement('script');
+    window[cbName] = function(data) {
+      allEntries = data.filter(e => e.id && e.id !== 'id');
+      delete window[cbName];
+      document.body.removeChild(script);
+      renderList();
+      if(document.getElementById('sec-cal').classList.contains('active')) renderCal();
+      resolve();
+    };
+    script.onerror = function() {
+      allEntries = [];
+      delete window[cbName];
+      renderList();
+      resolve();
+    };
+    script.src = API + '?callback=' + cbName;
+    document.body.appendChild(script);
+  });
 }
 
 function switchTab(t) {
